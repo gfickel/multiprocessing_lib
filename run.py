@@ -1,13 +1,7 @@
-import time
-import random
-import argparse
-import shutil
 from collections import defaultdict
 
 import numpy as np
 
-from mp_lock import mp_lock
-from mp_queue import mp_queue
 from benchmark import benchmark
 from dot_dict import DefaultDotDict
 
@@ -22,7 +16,7 @@ def write_results(results, args, result_size):
 
         for technique in tech_results:
             fid.write((f'{technique} - Batch {args.save_batch}, '
-            f'Process Time {args.process_time}\n'))
+                f'Process Time {args.process_time}\n'))
             fid.write('\n'.join([f'{x:.2f}' for x in tech_results[technique]])+'\n')
 
 
