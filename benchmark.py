@@ -7,6 +7,7 @@ import numpy as np
 
 from mp_lock import mp_lock
 from mp_queue import mp_queue
+from mp_dist import mp_dist
 
 
 # Using global variables to configure our processing function
@@ -66,6 +67,11 @@ def benchmark(args=None):
     start_time = time.time()
     mp_queue(data_list, process, args.num_procs, args.out_path, args.save_batch)
     results['mp_queue'] = (time.time()-start_time)*1000
+
+    # shutil.rmtree(args.out_path)
+    start_time = time.time()
+    mp_dist(data_list, process, args.num_procs, args.out_path, args.save_batch)
+    results['mp_dist'] = (time.time()-start_time)*1000
 
     return results
 
