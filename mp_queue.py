@@ -1,6 +1,6 @@
 import os
 import pickle
-import multiprocessing as mp 
+import multiprocessing as mp
 
 import numpy as np
 
@@ -39,11 +39,6 @@ def _proc_function(data_list, process, out_path, save_batch, q):
 
     if len(data_name) > 0:
         q.put({'data_name': data_name, 'results': results})
-
-def _init(l):
-    # https://stackoverflow.com/a/25558333/2704783
-    global lock
-    lock = l
 
 def mp_queue(data_list, process, num_procs, out_path, save_batch):
     """ Given a list of data and a process function, runs it in parallel and save
