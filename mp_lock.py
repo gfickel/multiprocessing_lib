@@ -5,11 +5,10 @@ from multiprocessing import Pool, Lock
 import numpy as np
 
 
-def _proc_function(data_list, process, out_path, save_batch):
+def _proc_function(data_list, process, save_callback, out_path, save_batch):
     def save(data_name, results):
         with lock:
-            with open(f'{out_path}/data.pickle', 'ba+') as fid:
-                pickle.dump({'data_name': data_name, 'results': results}, fid)
+            save_callback(f'{out_path}/data.pickle', results, data_name)
             with open(f'{out_path}/processed_list.txt', 'at') as fid:
                 fid.write('\n'.join(data_name)+'\n')
 
@@ -47,7 +46,7 @@ def _init(l):
     global lock
     lock = l
 
-def mp_lock(data_list, process, num_procs, out_path, save_batch):
+def mp_lock(data_list, process, save_callback, num_procs, out_path, save_batch):
     """ Given a list of data and a process function, runs it in parallel and save
     the results to out_path. This function saves all the intermediate calculation,
     so you can always resume it.
@@ -59,6 +58,16 @@ def mp_lock(data_list, process, num_procs, out_path, save_batch):
     process : func
         The processing function that gets an element from data_list, process it and
         returns a (pickable) value
+    save_callback : func
+        Saving function callback that will receive the results from process. Must
+        be declared with the following arguments:
+        def save_callback(output_filepath, data_results, data_names)
+            output_filepath : str
+                Filename to save the results
+            data_results : list
+                A list of results from process function
+            data_names : list
+                A list of data names (instances from data_list)
     num_procs : int
         Number of processes to use
     out_path : str
@@ -70,7 +79,7 @@ def mp_lock(data_list, process, num_procs, out_path, save_batch):
     lock = Lock()
 
     data_split = np.array_split(data_list, num_procs)
-    args = [(data, process, out_path, save_batch) for data in data_split]
+    args = [(data, process, save_callback, out_path, save_batch) for data in data_split]
 
     with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
         pool.starmap(_proc_function, args)

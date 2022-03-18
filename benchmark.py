@@ -2,6 +2,7 @@ import time
 import random
 import argparse
 import shutil
+import pickle
 
 import numpy as np
 
@@ -43,6 +44,10 @@ def process(data):
         dummy = dummy+1
     return np.zeros((element_size, element_size), dtype=np.uint8)
 
+def save_callback(output_filepath, data_results, data_names):
+    with open(output_filepath, 'ba+') as fid:
+        pickle.dump({'data_name': data_names, 'results': data_results}, fid)
+
 
 def benchmark(args=None):
     global g_result_size, g_process_time, g_process_time_jitter
@@ -55,22 +60,22 @@ def benchmark(args=None):
     results = {}
     data_list = [str(idx) for idx in range(args.data_size)]
 
-    try:
-        shutil.rmtree(args.out_path)
-    except:
-        pass
+    shutil.rmtree(args.out_path, ignore_errors=True)
     start_time = time.time()
-    mp_lock(data_list, process, args.num_procs, args.out_path, args.save_batch)
+    mp_lock(data_list, process, save_callback, args.num_procs, args.out_path,
+            args.save_batch)
     results['mp_lock'] = (time.time()-start_time)*1000
 
     shutil.rmtree(args.out_path)
     start_time = time.time()
-    mp_queue(data_list, process, args.num_procs, args.out_path, args.save_batch)
+    mp_queue(data_list, process, save_callback, args.num_procs, args.out_path,
+            args.save_batch)
     results['mp_queue'] = (time.time()-start_time)*1000
 
-    # shutil.rmtree(args.out_path)
+    shutil.rmtree(args.out_path)
     start_time = time.time()
-    mp_dist(data_list, process, args.num_procs, args.out_path, args.save_batch)
+    mp_dist(data_list, process, save_callback, args.num_procs, args.out_path,
+            args.save_batch)
     results['mp_dist'] = (time.time()-start_time)*1000
 
     return results
