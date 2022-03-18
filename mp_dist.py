@@ -1,6 +1,6 @@
 import os
 import pickle
-from multiprocessing import Pool, Lock
+from multiprocessing import Pool
 
 import numpy as np
 
@@ -40,11 +40,6 @@ def _proc_function(data_list, proc_id, process, out_path, save_batch):
     if len(data_name) > 0:
         save(data_name, results)
 
-def _init(l):
-    # https://stackoverflow.com/a/25558333/2704783
-    global lock
-    lock = l
-
 def mp_dist(data_list, process, num_procs, out_path, save_batch):
     """ Given a list of data and a process function, runs it in parallel and save
     the results to out_path. This function saves all the intermediate calculation,
@@ -64,12 +59,9 @@ def mp_dist(data_list, process, num_procs, out_path, save_batch):
     save_batch : int
         Number of results to group before saving
     """
-    # This lock will be shared with all the processes
-    lock = Lock()
-
     data_split = np.array_split(data_list, num_procs)
     args = [(data, idx, process, out_path, save_batch)
             for idx,data in enumerate(data_split)]
 
-    with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
+    with Pool(processes=num_procs) as pool:
         pool.starmap(_proc_function, args)
