@@ -1,5 +1,6 @@
 import os
 import pickle
+import time
 from multiprocessing import Pool
 
 import numpy as np
@@ -7,7 +8,8 @@ import numpy as np
 
 def _proc_function(data_list, proc_id, process, save_callback, out_path, save_batch):
     def save(data_name, results):
-        save_callback(f'{out_path}/data_{proc_id}.pickle', results, data_name)
+        if save_callback is not None:
+            save_callback(f'{out_path}/data_{proc_id}.pickle', results, data_name)
         with open(f'{out_path}/processed_list_{proc_id}.txt', 'at') as fid:
             fid.write('\n'.join(data_name)+'\n')
 
@@ -21,25 +23,24 @@ def _proc_function(data_list, proc_id, process, save_callback, out_path, save_ba
 
     os.makedirs(out_path, exist_ok=True)
     data_name, results = [], []
+    last_save = time.time()
     final_data_list = discard_processed(data_list)
 
     for idx, curr_data in enumerate(final_data_list):
         print(f'Processing {idx}/{len(final_data_list)}...', end='\r')
         res = process(curr_data)
-        if save_batch > 1:
-            data_name.append(curr_data)
-            results.append(res)
+        data_name.append(curr_data)
+        results.append(res)
 
-            if idx%10 == 0:
-                save(data_name, results)
-                data_name, results = [], []
-        else:
-            save(curr_data, res)
+        if len(data_name) > save_batch or time.time()-last_save > 2:
+            save(data_name, results)
+            data_name, results = [], []
+            last_save = time.time()
 
     if len(data_name) > 0:
         save(data_name, results)
 
-def mp_dist(data_list, process, save_callback, num_procs, out_path, save_batch):
+def mp_dist(data_list, process, save_callback, num_procs, out_path, save_batch=50):
     """ Given a list of data and a process function, runs it in parallel and save
     the results to out_path. This function saves all the intermediate calculation,
     so you can always resume it.
@@ -66,7 +67,7 @@ def mp_dist(data_list, process, save_callback, num_procs, out_path, save_batch):
     out_path : str
         Output path
     save_batch : int
-        Number of results to group before saving
+        Max number of results to group before saving
     """
     data_split = np.array_split(data_list, num_procs)
     args = [(data, idx, process, save_callback, out_path, save_batch)
