@@ -23,7 +23,7 @@ def listener(q, out_path, save_callback):
                 m = q.get()
                 if m == 'kill':
                     break
-                save_callback(out_path+'/data.bin', m['results'], m['data_name'])
+                save_callback(out_path+'/data', m['results'], m['data_name'])
     except BaseException as e:
         import logging
         logging.error(str(e), exc_info=True)

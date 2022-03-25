@@ -10,7 +10,7 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch):
     def save(data_name, results):
         with lock:
             if save_callback is not None:
-                save_callback(f'{out_path}/data.pickle', results, data_name)
+                save_callback(f'{out_path}/data', results, data_name)
             with open(f'{out_path}/processed_list.txt', 'at') as fid:
                 fid.write('\n'.join(data_name)+'\n')
 

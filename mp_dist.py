@@ -9,7 +9,7 @@ import numpy as np
 def _proc_function(data_list, proc_id, process, save_callback, out_path, save_batch):
     def save(data_name, results):
         if save_callback is not None:
-            save_callback(f'{out_path}/data_{proc_id}.pickle', results, data_name)
+            save_callback(f'{out_path}/data_{proc_id}', results, data_name)
         with open(f'{out_path}/processed_list_{proc_id}.txt', 'at') as fid:
             fid.write('\n'.join(data_name)+'\n')
 
