@@ -1,6 +1,7 @@
 import os
 import pickle
 import time
+import logging
 from multiprocessing import Pool, Lock
 
 import numpy as np
@@ -23,24 +24,28 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch):
                 processed = []
         return list(set(data_list)-set(processed))
 
-    os.makedirs(out_path, exist_ok=True)
-    data_name, results = [], []
-    # last_save = time.time()
-    final_data_list = discard_processed(data_list)
+    try:
+        os.makedirs(out_path, exist_ok=True)
+        data_name, results = [], []
+        # last_save = time.time()
+        final_data_list = discard_processed(data_list)
 
-    for idx, curr_data in enumerate(final_data_list):
-        print(f'Processing {idx}/{len(final_data_list)}...', end='\r')
-        res = process(curr_data)
-        data_name.append(curr_data)
-        results.append(res)
+        for idx, curr_data in enumerate(final_data_list):
+            print(f'Processing {idx}/{len(final_data_list)}...', end='\r')
+            res = process(curr_data)
+            data_name.append(curr_data)
+            results.append(res)
 
-        if len(data_name) > save_batch:  # or time.time()-last_save > 10:
+            if len(data_name) > save_batch:  # or time.time()-last_save > 10:
+                save(data_name, results)
+                data_name, results = [], []
+                last_save = time.time()
+
+        if len(data_name) > 0:
             save(data_name, results)
-            data_name, results = [], []
-            last_save = time.time()
-
-    if len(data_name) > 0:
-        save(data_name, results)
+    except BaseException as e:
+        logging.error(str(e), exc_info=True)
+        raise e
 
 def _init(l):
     # https://stackoverflow.com/a/25558333/2704783
