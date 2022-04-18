@@ -23,3 +23,12 @@ You can generate some benchmark results by running
 python3 run.py
 ```
 The results will be saved on results.txt . Notice that new benchmark runs will append on this file.
+
+### Installing Package
+
+#### Local
+
+```sh
+python3 -m build
+pip3 install dist/doc_ock-0.0.1-py3-none-any.whl --force-reinstall
+```
