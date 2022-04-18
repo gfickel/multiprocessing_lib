@@ -7,6 +7,12 @@ For now we have 3 implemented solutions for batch processing with multiple proce
 2. **mp_queue.py:** Uses a single process that is responsible for writing, and the data arives using a Queue.
 3. **mp_dist.py:** Each process writes to a different file, and in the end we should join all of them.
 
+### Examples
+
+We have some examples on how to use this lib on examples folder.
+- **run_api.py:** calls an API endpoint and save their results on a pickle file.
+- **resize_images.py:** resizes a batch of images.
+
 ### Benchmark Options
 - **num_procs:** number of processes.
 - **result_size:** the result size in KB of every processed element.
@@ -14,7 +20,7 @@ For now we have 3 implemented solutions for batch processing with multiple proce
 - **process_time_jitter:** max variation of process_time.
 - **data_size:** how many elements will be processed.
 - **save_batch:** joins the results on a batch before saving them to disk.
-- **out_path:** where to save the results
+- **out_path:** where to save the results.
 
 ### Running Benchmark
 
