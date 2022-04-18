@@ -17,7 +17,6 @@ def listener(q, out_path, save_callback):
                     if m == 'kill':
                         break
                     pickle.dump(m, f)
-                    # f.flush()
         else:
             while 1:
                 m = q.get()
@@ -29,7 +28,7 @@ def listener(q, out_path, save_callback):
         logging.error(str(e), exc_info=True)
 
 def _proc_function(data_list, process, out_path, save_batch, q):
-    last_save = time.time()
+    # last_save = time.time()
     data_name, results = [], []
     final_data_list = data_list
 
@@ -39,7 +38,7 @@ def _proc_function(data_list, process, out_path, save_batch, q):
         data_name.append(curr_data)
         results.append(res)
 
-        if len(data_name) > save_batch or time.time()-last_save > 1:
+        if len(data_name) > save_batch:  # or time.time()-last_save > 1:
             q.put({'data_name': data_name, 'results': results})
             data_name, results = [], []
             last_save = time.time()
@@ -47,7 +46,7 @@ def _proc_function(data_list, process, out_path, save_batch, q):
     if len(data_name) > 0:
         q.put({'data_name': data_name, 'results': results})
 
-def mp_queue(data_list, process, save_callback, num_procs, out_path, save_batch=50):
+def mp_queue(data_list, process, save_callback, num_procs, out_path, save_batch=10):
     """ Given a list of data and a process function, runs it in parallel and save
     the results to out_path. This function saves all the intermediate calculation,
     so you can always resume it.
