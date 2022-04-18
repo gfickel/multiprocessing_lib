@@ -8,7 +8,7 @@ from mp_lock import mp_lock
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Benchmark')
+    parser = argparse.ArgumentParser(description='Script to resize a batch of images')
     parser.add_argument('--images_path', type=str, required=True,
             help='Images path')
     parser.add_argument('--out_path', type=str, required=True,
@@ -18,6 +18,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     data_list = glob.glob(args.images_path+'/*')
+
     def process(im_path):
         im = cv2.imread(im_path)
         if im is None:
