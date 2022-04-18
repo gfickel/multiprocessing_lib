@@ -4,7 +4,7 @@ import pickle
 import glob
 import os
 
-from mp_lock import mp_lock
+from doc_ock.mp_lock import mp_lock
 
 URL = ''
 

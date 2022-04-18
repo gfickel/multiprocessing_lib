@@ -4,7 +4,7 @@ import os
 
 import cv2
 
-from mp_lock import mp_lock
+from doc_ock.mp_lock import mp_lock
 
 
 if __name__ == '__main__':
