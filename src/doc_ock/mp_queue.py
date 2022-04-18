@@ -1,6 +1,7 @@
 import os
 import time
 import pickle
+import logging
 import multiprocessing as mp
 
 import numpy as np
@@ -28,23 +29,28 @@ def listener(q, out_path, save_callback):
         logging.error(str(e), exc_info=True)
 
 def _proc_function(data_list, process, out_path, save_batch, q):
-    # last_save = time.time()
-    data_name, results = [], []
-    final_data_list = data_list
+    try:
+        # last_save = time.time()
+        data_name, results = [], []
+        final_data_list = data_list
 
-    for idx, curr_data in enumerate(final_data_list):
-        print(f'Processing {idx}/{len(final_data_list)}...', end='\r')
-        res = process(curr_data)
-        data_name.append(curr_data)
-        results.append(res)
+        for idx, curr_data in enumerate(final_data_list):
+            print(f'Processing {idx}/{len(final_data_list)}...', end='\r')
+            res = process(curr_data)
+            data_name.append(curr_data)
+            results.append(res)
 
-        if len(data_name) > save_batch:  # or time.time()-last_save > 1:
+            if len(data_name) > save_batch:  # or time.time()-last_save > 1:
+                q.put({'data_name': data_name, 'results': results})
+                data_name, results = [], []
+                last_save = time.time()
+
+        if len(data_name) > 0:
             q.put({'data_name': data_name, 'results': results})
-            data_name, results = [], []
-            last_save = time.time()
+    except BaseException as e:
+        logging.error(str(e), exc_info=True)
+        raise e
 
-    if len(data_name) > 0:
-        q.put({'data_name': data_name, 'results': results})
 
 def mp_queue(data_list, process, save_callback, num_procs, out_path, save_batch=10):
     """ Given a list of data and a process function, runs it in parallel and save
