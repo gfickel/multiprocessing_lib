@@ -26,19 +26,19 @@ class Correctness(unittest.TestCase):
     data = [str(x) for x in range(10)]
 
     def test_mp_dist(self):
-        for num_procs in [1,2,3,4,5,6,7,8]:
-            for batch_size in [1,2,3,4,5,6]:
+        for num_procs in [1,2,3,4,5,6,7,8,16]:
+            for batch_size in [1,2,3,4,5,6,50]:
                 res = run_sum_squared_test(mp_dist, self.data, num_procs, batch_size)
                 self.assertEqual(res, 285)
 
     def test_mp_lock(self):
-        for num_procs in [1,2,3,4,5,6,7,8]:
-            for batch_size in [1,2,3,4,5,6]:
+        for num_procs in [1,2,3,4,5,6,7,8,16]:
+            for batch_size in [1,2,3,4,5,6,50]:
                 res = run_sum_squared_test(mp_lock, self.data, num_procs, batch_size)
                 self.assertEqual(res, 285)
 
     def test_mp_queue(self):
-        for num_procs in [1,2,3,4,5,6,7,8]:
-            for batch_size in [1,2,3,4,5,6]:
+        for num_procs in [1,2,3,4,5,6,7,8,16]:
+            for batch_size in [1,2,3,4,5,6,50]:
                 res = run_sum_squared_test(mp_queue, self.data, num_procs, batch_size)
                 self.assertEqual(res, 285)
