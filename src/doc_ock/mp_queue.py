@@ -6,6 +6,8 @@ import multiprocessing as mp
 
 import numpy as np
 
+from doc_ock.utils import validate_inputs
+
 
 def listener(q, out_path, save_callback):
     '''listens for messages on the q, writes to file. '''
@@ -81,6 +83,7 @@ def mp_queue(data_list, process, save_callback, num_procs, out_path, save_batch=
     save_batch : int
         Max number of results to group before saving
     """
+    validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch)
     #must use Manager queue here, or will not work
     manager = mp.Manager()
     q = manager.Queue()

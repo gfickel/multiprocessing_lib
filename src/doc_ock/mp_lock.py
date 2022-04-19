@@ -6,6 +6,8 @@ from multiprocessing import Pool, Lock
 
 import numpy as np
 
+from doc_ock.utils import validate_inputs
+
 
 def _proc_function(data_list, process, save_callback, out_path, save_batch):
     def save(data_name, results):
@@ -81,6 +83,7 @@ def mp_lock(data_list, process, save_callback, num_procs, out_path, save_batch=1
     save_batch : int
         Max number of results to group before saving
     """
+    validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch)
     # This lock will be shared with all the processes
     lock = Lock()
 

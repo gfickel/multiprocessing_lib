@@ -6,6 +6,8 @@ from multiprocessing import Pool
 
 import numpy as np
 
+from doc_ock.utils import validate_inputs
+
 
 def _proc_function(data_list, proc_id, process, save_callback, out_path, save_batch):
     def save(data_name, results):
@@ -75,6 +77,7 @@ def mp_dist(data_list, process, save_callback, num_procs, out_path, save_batch=1
     save_batch : int
         Max number of results to group before saving
     """
+    validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch)
     data_split = np.array_split(data_list, num_procs)
     args = [(data, idx, process, save_callback, out_path, save_batch)
             for idx,data in enumerate(data_split)]
