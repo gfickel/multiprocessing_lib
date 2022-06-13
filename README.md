@@ -35,6 +35,11 @@ The results will be saved on results.txt . Notice that new benchmark runs will a
 #### Local
 
 ```sh
+sudo apt install python3-distutils
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3 get-pip.py
 python3 -m build
-pip3 install dist/doc_ock-0.0.1-py3-none-any.whl --force-reinstall
+python3 -m pip install dist/doc_ock-0.0.1-py3-none-any.whl --force-reinstall
 ```
+
+Knwon bugs with Python3.9, so beware.
