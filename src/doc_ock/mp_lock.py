@@ -27,7 +27,6 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch):
         return list(set(data_list)-set(processed))
 
     try:
-        os.makedirs(out_path, exist_ok=True)
         data_name, results = [], []
         # last_save = time.time()
         final_data_list = discard_processed(data_list)
@@ -90,5 +89,7 @@ def mp_lock(data_list, process, save_callback, num_procs, out_path, save_batch=1
     data_split = np.array_split(data_list, num_procs)
     args = [(data, process, save_callback, out_path, save_batch) for data in data_split]
 
+    os.makedirs(out_path, exist_ok=True)
+    os.makedirs(os.path.join(out_path, 'data'), exist_ok=True)
     with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
         pool.starmap(_proc_function, args)

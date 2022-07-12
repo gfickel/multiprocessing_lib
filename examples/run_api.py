@@ -6,7 +6,23 @@ import os
 
 from doc_ock.mp_lock import mp_lock
 
-URL = ''
+
+class Requester:
+    def __init__(self, url):
+        self.url = url
+
+    def process(self, data):
+        with open(data, 'rb') as fid:
+            res = requests.post(self.url, files={'image': fid})
+        return res.json()
+
+    def save_callback(self, output_filepath, data_results, data_names):
+        with open(f'{output_filepath}.pickle', 'ba+') as fid:
+            pickle.dump({
+                'data_name': data_names,
+                'results': data_results
+            }, fid)
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='Call API')
@@ -21,25 +37,10 @@ def get_args():
     return parser.parse_args()
 
 
-def process(data):
-    global URL
-    with open(data, 'rb') as fid:
-        multipart_form_data = (
-            ('image', ('file.jpg', fid)),
-        )
-        res = requests.post(URL, files={'image': fid})
-    return res.json()
-
-def save_callback(output_filepath, data_results, data_names):
-    with open(output_filepath+'.pickle', 'ba+') as fid:
-        pickle.dump({'data_name': data_names, 'results': data_results}, fid)
-
-
 if __name__ == '__main__':
     args = get_args()
-    URL = args.url
+    requester = Requester(args.url)
 
     images = glob.glob(f'{args.input_images}/**/*', recursive=True)
     images = [x for x in images if os.path.isfile(x)]
-    mp_lock(images, process, save_callback, args.num_procs, args.out_path, 1)
-
+    mp_lock(images, requester.process, requester.save_callback, args.num_procs, args.out_path, 1)
