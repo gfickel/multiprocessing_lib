@@ -4,12 +4,13 @@ import time
 import logging
 from multiprocessing import Pool, Lock
 
+from tqdm import tqdm
 import numpy as np
 
 from doc_ock.utils import validate_inputs
 
 
-def _proc_function(data_list, process, save_callback, out_path, save_batch):
+def _proc_function(data_list, process, save_callback, out_path, save_batch, ith_process):
     def save(data_name, results):
         with lock:
             if save_callback is not None:
@@ -32,8 +33,14 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch):
         # last_save = time.time()
         final_data_list = discard_processed(data_list)
 
+        progress = tqdm(
+            total=len(final_data_list),
+            position=ith_process,
+            desc=f"Process #{ith_process}"
+        )
+
         for idx, curr_data in enumerate(final_data_list):
-            print(f'Processing {idx}/{len(final_data_list)}...', end='\r')
+            # print(f'Processing {idx}/{len(final_data_list)}...', end='\r')
             res = process(curr_data)
             data_name.append(curr_data)
             results.append(res)
@@ -42,6 +49,8 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch):
                 save(data_name, results)
                 data_name, results = [], []
                 last_save = time.time()
+
+            progress.update(1)
 
         if len(data_name) > 0:
             save(data_name, results)
@@ -88,7 +97,10 @@ def mp_lock(data_list, process, save_callback, num_procs, out_path, save_batch=1
     lock = Lock()
 
     data_split = np.array_split(data_list, num_procs)
-    args = [(data, process, save_callback, out_path, save_batch) for data in data_split]
+    print(f"Data splitted in {len(data_split)} slices.")
 
-    with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
-        pool.starmap(_proc_function, args)
+    with tqdm(total=len(data_list)) as pbar:
+        args = [(data, process, save_callback, out_path, save_batch, i) for i,data in enumerate(data_split)]
+
+        with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
+            pool.starmap(_proc_function, args)
