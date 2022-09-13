@@ -53,7 +53,7 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch, ith_
             progress.update(1)
 
         if len(data_name) > 0:
-            save(data_name, results, shared_dict)
+            save(data_name, results)
     except BaseException as e:
         logging.error(str(e), exc_info=True)
         raise e
