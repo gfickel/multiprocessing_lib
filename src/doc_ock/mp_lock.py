@@ -2,6 +2,7 @@ import os
 import pickle
 import time
 import logging
+from contextlib import redirect_stdout
 from multiprocessing import Pool, Lock
 
 from tqdm import tqdm
@@ -11,12 +12,11 @@ from doc_ock.utils import validate_inputs
 
 
 def _discard_processed(data_list):
-    with lock:
-        try:
-            with open(f'{out_path}/processed_list.txt', 'rt') as fid:
-                processed = [x.strip() for x in fid.readlines()]
-        except:
-            processed = []
+    try:
+        with open(f'{out_path}/processed_list.txt', 'rt') as fid:
+            processed = [x.strip() for x in fid.readlines()]
+    except:
+        processed = []
     return list(set(data_list)-set(processed))
 
 def _proc_function(data_list, process, save_callback, out_path, save_batch, ith_process):
@@ -36,17 +36,20 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch, ith_
             desc=f"Process #{ith_process}"
         )
 
-        for idx, curr_data in enumerate(data_list):
-            res = process(curr_data)
-            data_name.append(curr_data)
-            results.append(res)
+        # https://stackoverflow.com/questions/1154446/is-file-append-atomic-in-unix
+        with open(f'{out_path}/user_output.txt', 'a') as fid:
+            with redirect_stdout(fid):
+                for idx, curr_data in enumerate(data_list):
+                    res = process(curr_data)
+                    data_name.append(curr_data)
+                    results.append(res)
 
-            if len(data_name) > save_batch:  # or time.time()-last_save > 10:
-                save(data_name, results)
-                data_name, results = [], []
-                last_save = time.time()
+                    if len(data_name) > save_batch:  # or time.time()-last_save > 10:
+                        save(data_name, results)
+                        data_name, results = [], []
+                        last_save = time.time()
 
-            progress.update(1)
+                    progress.update(1)
 
         if len(data_name) > 0:
             save(data_name, results)
