@@ -2,16 +2,23 @@
 
 ### Different Solutions
 
-For now we have 3 implemented solutions for batch processing with multiple processes:
+For now we have 1 implemented solution for batch processing with multiple processes:
 1. **mp_lock.py:** Each process writes to the same file, and are synched by a multiprocess Lock.
-2. **mp_queue.py:** Uses a single process that is responsible for writing, and the data arives using a Queue.
-3. **mp_dist.py:** Each process writes to a different file, and in the end we should join all of them.
+
+For testing purposes we have the following deprecated solutions:
+1. **mp_queue.py:** Uses a single process that is responsible for writing, and the data arives using a Queue.
+2. **mp_dist.py:** Each process writes to a different file, and in the end we should join all of them.
 
 ### Examples
 
 We have some examples on how to use this lib on examples folder.
 - **run_api.py:** calls an API endpoint and save their results on a pickle file.
 - **resize_images.py:** resizes a batch of images.
+
+All of the user stdout output from the **process** and **save_callback** functions are redirected to **out_path/user_output.txt**. You can open a new terminal and follow those outputs with:
+```sh
+tail -f out_path/user_output.txt
+```
 
 ### Benchmark Options
 - **num_procs:** number of processes.
