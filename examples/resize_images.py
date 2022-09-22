@@ -1,6 +1,8 @@
 import argparse
 import glob
 import os
+import sys
+sys.path.append('/home/gfickel/codes/multiprocessing_lib/src/')
 
 import cv2
 
@@ -19,7 +21,8 @@ if __name__ == '__main__':
 
     data_list = glob.glob(args.images_path+'/*')
 
-    def process(im_path):
+    def process(im_path, shared_data={}):
+        print('Processing', im_path)
         im = cv2.imread(im_path)
         if im is None:
             print('problem with image', im_path)

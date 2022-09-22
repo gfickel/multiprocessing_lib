@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     data_list = [str(i) for i in range(1000)]
 
-    def process(im_path):
+    def process(im_path, shared_data={}):
         # print("AAAAA")
         time.sleep(0.1)
 
