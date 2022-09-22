@@ -2,6 +2,7 @@ import os
 import pickle
 import time
 import logging
+from typing import List, Callable
 from contextlib import redirect_stdout
 from multiprocessing import Pool, Lock
 
@@ -19,7 +20,9 @@ def _discard_processed(data_list):
         processed = []
     return list(set(data_list)-set(processed))
 
-def _proc_function(data_list, process, save_callback, out_path, save_batch, ith_process):
+def _proc_function(data_list, process, save_callback, out_path, save_batch,
+                   shared_data, ith_process):
+
     def save(data_name, results):
         with lock:
             if save_callback is not None:
@@ -33,14 +36,14 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch, ith_
         progress = tqdm(
             total=len(data_list),
             position=ith_process,
-            desc=f"Process #{ith_process}"
+            desc=f'Process #{ith_process}'
         )
 
         # https://stackoverflow.com/questions/1154446/is-file-append-atomic-in-unix
         with open(f'{out_path}/user_output.txt', 'a') as fid:
             with redirect_stdout(fid):
                 for idx, curr_data in enumerate(data_list):
-                    res = process(curr_data)
+                    res = process(curr_data, shared_data)
                     data_name.append(curr_data)
                     results.append(res)
 
@@ -62,7 +65,8 @@ def _init(l):
     global lock
     lock = l
 
-def mp_lock(data_list, process, save_callback, num_procs, out_path, save_batch=10):
+def mp_lock(data_list: List[str], process: Callable, save_callback: Callable,
+            num_procs: int, out_path: str, save_batch: int=10, shared_data: dict={}):
     """ Given a list of data and a process function, runs it in parallel and save
     the results to out_path. This function saves all the intermediate calculation,
     so you can always resume it.
@@ -90,6 +94,8 @@ def mp_lock(data_list, process, save_callback, num_procs, out_path, save_batch=1
         Output path
     save_batch : int
         Max number of results to group before saving
+    shared_data : dict
+        Data shared within all the processes
     """
     validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch)
     # This lock will be shared with all the processes
@@ -97,10 +103,10 @@ def mp_lock(data_list, process, save_callback, num_procs, out_path, save_batch=1
 
     final_data_list = _discard_processed(data_list)
     data_split = np.array_split(final_data_list, num_procs)
-    print(f"Data splitted in {len(data_split)} slices.")
+    print(f'Data splitted in {len(data_split)} slices.')
 
     with tqdm(total=len(data_list)) as pbar:
-        args = [(data, process, save_callback, out_path, save_batch, i) for i,data in enumerate(data_split)]
+        args = [(data, process, save_callback, out_path, save_batch, shared_data, i) for i,data in enumerate(data_split)]
 
     os.makedirs(out_path, exist_ok=True)
     os.makedirs(os.path.join(out_path, 'data'), exist_ok=True)
