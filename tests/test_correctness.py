@@ -6,7 +6,7 @@ from doc_ock.mp_lock import mp_lock
 from doc_ock.mp_queue import mp_queue
 
 
-def compute_sum_squared(data):
+def compute_sum_squared(data, shared_data={}):
     return int(data)*int(data)
 
 def save_callback(out_filepath, results, names):

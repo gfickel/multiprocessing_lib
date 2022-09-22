@@ -8,7 +8,7 @@ from doc_ock.mp_queue import mp_queue
 from doc_ock.utils import InvalidArgumentsError
 
 
-def invalid_process(data):
+def invalid_process(data, shared_data={}):
     import invalid_module
     return 1
 
