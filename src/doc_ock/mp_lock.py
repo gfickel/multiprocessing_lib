@@ -2,6 +2,7 @@ import os
 import pickle
 import time
 import logging
+from contextlib import suppress
 from typing import List, Callable
 from contextlib import redirect_stdout
 from multiprocessing import Pool, Lock
@@ -12,12 +13,12 @@ import numpy as np
 from doc_ock.utils import validate_inputs
 
 
-def _discard_processed(data_list):
-    try:
+def _discard_processed(data_list, out_path):
+    processed = []
+    with suppress(FileNotFoundError):
         with open(f'{out_path}/processed_list.txt', 'rt') as fid:
             processed = [x.strip() for x in fid.readlines()]
-    except:
-        processed = []
+
     return list(set(data_list)-set(processed))
 
 def _proc_function(data_list, process, save_callback, out_path, save_batch,
@@ -101,7 +102,7 @@ def mp_lock(data_list: List[str], process: Callable, save_callback: Callable,
     # This lock will be shared with all the processes
     lock = Lock()
 
-    final_data_list = _discard_processed(data_list)
+    final_data_list = _discard_processed(data_list, out_path)
     data_split = np.array_split(final_data_list, num_procs)
     print(f'Data splitted in {len(data_split)} slices.')
 
