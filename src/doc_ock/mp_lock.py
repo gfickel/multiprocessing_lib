@@ -29,7 +29,16 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch,
             if save_callback is not None:
                 save_callback(f'{out_path}/data', results, data_name)
             with open(f'{out_path}/processed_list.txt', 'at') as fid:
-                fid.write('\n'.join(data_name)+'\n')
+                fid.write('\n'.join(str(data_name))+'\n')
+
+    def discard_processed(data_list):
+        with lock:
+            try:
+                with open(f'{out_path}/processed_list.txt', 'rt') as fid:
+                    processed = [x.strip() for x in fid.readlines()]
+            except Exception:
+                processed = []
+        return list(set(data_list)-set(processed))
 
     try:
         data_name, results = [], []
