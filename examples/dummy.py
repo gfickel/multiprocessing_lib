@@ -17,7 +17,7 @@ if __name__ == '__main__':
     data_list = [str(i) for i in range(1000)]
 
     def process(im_path, shared_data={}):
-        # print("AAAAA")
+        print(im_path, "AAAAA")
         time.sleep(0.1)
 
     mp_lock(data_list, process, None, args.num_procs, "dummy_out")
