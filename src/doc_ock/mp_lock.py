@@ -35,26 +35,29 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch,
         os.makedirs(out_path, exist_ok=True)
         data_name, results = [], []
 
+        tqdm_file = open(f'{out_path}/tqdm.txt', 'a')
+
         progress = tqdm(
             total=len(data_list),
             position=ith_process,
-            desc=f'Process #{ith_process}'
+            desc=f'Process #{ith_process}',
+            file=tqdm_file
         )
 
-        # https://stackoverflow.com/questions/1154446/is-file-append-atomic-in-unix
-        with open(f'{out_path}/user_output.txt', 'a') as fid:
-            with redirect_stdout(fid):
-                for idx, curr_data in enumerate(data_list):
-                    res = process(curr_data, shared_data)
-                    data_name.append(curr_data)
-                    results.append(res)
 
-                    if len(data_name) > save_batch:  # or time.time()-last_save > 10:
-                        save(data_name, results)
-                        data_name, results = [], []
-                        last_save = time.time()
+        for idx, curr_data in enumerate(data_list):
+            res = process(curr_data, shared_data)
+            data_name.append(curr_data)
+            results.append(res)
 
-                    progress.update(1)
+            if len(data_name) > save_batch:  # or time.time()-last_save > 10:
+                save(data_name, results)
+                data_name, results = [], []
+                last_save = time.time()
+
+            progress.update(1)
+
+        tqdm_file.close()
 
         if len(data_name) > 0:
             save(data_name, results)
@@ -107,8 +110,7 @@ def mp_lock(data_list: List[str], process: Callable, save_callback: Callable,
     data_split = np.array_split(final_data_list, num_procs)
     print(f'Data splitted in {len(data_split)} slices.')
 
-    with tqdm(total=len(data_list)) as pbar:
-        args = [(data, process, save_callback, out_path, save_batch, shared_data, i) for i,data in enumerate(data_split)]
+    args = [(data, process, save_callback, out_path, save_batch, shared_data, i) for i,data in enumerate(data_split)]
 
-        with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
-            pool.starmap(_proc_function, args)
+    with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
+        pool.starmap(_proc_function, args)
