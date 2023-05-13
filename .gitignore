@@ -17,4 +17,4 @@ __pycache__/
 
 dist/
 src/doc_ock.egg-info/
-data/tmp/
+src/tests/data/tmp/
