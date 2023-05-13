@@ -9,7 +9,7 @@ class InvalidArgumentsError(Exception):
         super().__init__(message)
 
 
-def validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch):
+def validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch, batch_size=1):
     if isinstance(data_list, list)==False or len(data_list) == 0:
         raise InvalidArgumentsError('data_list', 'list(str) > 0')
     if isinstance(process, types.FunctionType) == False:
@@ -20,3 +20,5 @@ def validate_inputs(data_list, process, save_callback, num_procs, out_path, save
         raise InvalidArgumentsError('out_path', 'len(str) > 0')
     if isinstance(save_batch, int) == False or save_batch <= 0:
         raise InvalidArgumentsError('save_batch', 'int > 0')
+    if isinstance(batch_size, int) == False or batch_size <= 0:
+        raise InvalidArgumentsError('batch_size', 'int > 0')
