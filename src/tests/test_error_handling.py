@@ -9,7 +9,7 @@ from doc_ock.utils import InvalidArgumentsError
 
 TEST_PATH = 'tests/data/tmp/'
 
-def invalid_process(data, shared_data={}):
+def invalid_process(data, shared_data={}, init_values={}):
     import invalid_module
     return 1
 
