@@ -20,8 +20,8 @@ def _discard_processed(data_list, out_path):
 
     return list(set(data_list)-set(processed))
 
-def _proc_function(data_list, process, save_callback, out_path, save_batch,
-                   shared_data, ith_process, batch_processing=False):
+def _proc_function(data_list, process, init_function, save_callback, out_path,
+                   save_batch, shared_data, ith_process, batch_processing=False):
 
     def save(data_name, results):
         with lock:
@@ -33,6 +33,9 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch,
     try:
         os.makedirs(out_path, exist_ok=True)
         data_name, results = [], []
+        init_vals = {}
+        if init_function is not None:
+            init_vals = init_function(shared_data)
 
         progress = tqdm(
             total=len(data_list),
@@ -44,7 +47,7 @@ def _proc_function(data_list, process, save_callback, out_path, save_batch,
         with open(f'{out_path}/user_output.txt', 'a') as fid:
             with redirect_stdout(fid):
                 for idx, curr_data in enumerate(data_list):
-                    res = process(curr_data, shared_data)
+                    res = process(curr_data, shared_data, init_vals)
                     if not batch_processing:
                         res, curr_data = [res], [curr_data]
                     data_name.extend(curr_data)
@@ -69,7 +72,8 @@ def _init(l):
     lock = l
 
 def mp_lock(data_list: List[str], process: Callable, save_callback: Callable,
-            num_procs: int, out_path: str, save_batch: int=10, shared_data: dict={}):
+            num_procs: int, out_path: str, save_batch: int=10, shared_data: dict={},
+            init_function: Callable=None):
     """ Given a list of data and a process function, runs it in parallel and save
     the results to out_path. This function saves all the intermediate calculation,
     so you can always resume it.
@@ -99,6 +103,9 @@ def mp_lock(data_list: List[str], process: Callable, save_callback: Callable,
         Max number of results to group before saving
     shared_data : dict
         Data shared within all the processes
+    init_function : Callable
+        Function that is called once, for every process. Receives shared_data and
+        their return values are passed to the process function
     """
     validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch)
     # This lock will be shared with all the processes
@@ -109,14 +116,15 @@ def mp_lock(data_list: List[str], process: Callable, save_callback: Callable,
     print(f'Data splitted in {len(data_split)} slices.')
 
     with tqdm(total=len(data_list)) as pbar:
-        args = [(data, process, save_callback, out_path, save_batch, shared_data, i) for i,data in enumerate(data_split)]
+        args = [(data, process, init_function, save_callback, out_path, save_batch, shared_data, i) for i,data in enumerate(data_split)]
         with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
             pool.starmap(_proc_function, args)
 
 
 def mp_lock_batch(data_list: List[str], process: Callable,
                   save_callback: Callable, num_procs: int, out_path: str,
-                  batch_size: int, save_batch: int=10, shared_data: dict={}):
+                  batch_size: int, save_batch: int=10, shared_data: dict={},
+                  init_function: Callable=None):
     """ Given a list of data and a process function, runs it in parallel and save
     the results to out_path. This function saves all the intermediate calculation,
     so you can always resume it.
@@ -148,6 +156,9 @@ def mp_lock_batch(data_list: List[str], process: Callable,
         Max number of results to group before saving
     shared_data : dict
         Data shared within all the processes
+    init_function : Callable
+        Function that is called once, for every process. Receives shared_data and
+        their return values are passed to the process function
     """
     validate_inputs(data_list, process, save_callback, num_procs, out_path, save_batch, batch_size)
     # This lock will be shared with all the processes
@@ -159,7 +170,7 @@ def mp_lock_batch(data_list: List[str], process: Callable,
     print(f'Data splitted in {len(data_split)}|{num_procs} slices of size {batch_size}')
 
     with tqdm(total=len(data_list)) as pbar:
-        args = [(data, process, save_callback, out_path, save_batch, shared_data, i, True) for i,data in enumerate(data_split)]
+        args = [(data, process, init_function, save_callback, out_path, save_batch, shared_data, i, True) for i,data in enumerate(data_split)]
 
         with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
             pool.starmap(_proc_function, args)
