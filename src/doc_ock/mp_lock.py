@@ -172,7 +172,8 @@ def mp_lock_batch(data_list: List[str], process: Callable,
 
     final_data_list = _discard_processed(data_list, out_path)
     group_data = [final_data_list[x:x+batch_size] for x in range(0, len(final_data_list), batch_size)]
-    data_split = np.array_split(group_data, num_procs)
+    split_idx = np.array_split(np.arange(len(group_data)), num_procs)
+    data_split = [[group_data[idx] for idx in idx_list] for idx_list in split_idx]
     if verbose:
         print(f'Data splitted in {len(data_split)}|{num_procs} slices of size {batch_size}')
 
