@@ -47,7 +47,5 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3 get-pip.py
 python3 -m pip install build
 python3 -m build
-python3 -m pip install dist/doc_ock-0.0.1-py3-none-any.whl --force-reinstall
+python3 -m pip install dist/doc_ock-0.0.4-py3-none-any.whl --force-reinstall
 ```
-
-Knwon bugs with Python3.9, so beware.
