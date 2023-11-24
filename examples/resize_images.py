@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     data_list = glob.glob(args.images_path+'/*')
 
-    def process(im_path, shared_data={}):
+    def process(im_path, shared_data={}, init_values={}):
         print('Processing', im_path)
         im = cv2.imread(im_path)
         if im is None:
