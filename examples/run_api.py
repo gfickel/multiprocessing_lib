@@ -21,7 +21,7 @@ def get_args():
     return parser.parse_args()
 
 
-def process(data, shared_data={}):
+def process(data, shared_data={}, init_values={}):
     global URL
     with open(data, 'rb') as fid:
         multipart_form_data = (
