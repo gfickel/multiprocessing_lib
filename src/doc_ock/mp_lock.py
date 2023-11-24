@@ -20,6 +20,7 @@ def _discard_processed(data_list, out_path):
 
     return list(set(data_list)-set(processed))
 
+
 def _proc_function(data_list, process, init_function, save_callback, out_path,
                    save_batch, shared_data, verbose, ith_process,
                    batch_processing=False):
@@ -181,6 +182,10 @@ def mp_lock_batch(data_list: List[str], process: Callable,
         args = [(data, process, init_function, save_callback, out_path, save_batch,
                  shared_data, verbose, i, True) for i,data in enumerate(data_split)]
 
+
+    with tqdm(total=len(data_list), disable=not verbose) as pbar:
+        args = [(data, process, init_function, save_callback, out_path, save_batch,
+                 shared_data, verbose, i, True) for i,data in enumerate(data_split)]
         with Pool(processes=num_procs, initializer=_init, initargs=(lock,)) as pool:
             pool.starmap(_proc_function, args)
 
