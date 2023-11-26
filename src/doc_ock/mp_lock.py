@@ -238,3 +238,23 @@ def mp_lock_value(data_list: List[str], process: Callable, save_callback: Callab
             save_batch, shared_data, init_function, verbose)
 
     return load_results(data_list, out_path)
+
+
+def is_mp_lock_completed(data_list: List[str], out_path: str):
+    """ Checks if a previous mp_lock* called has completed.
+
+    Parameters
+    ----------
+    data_list : list(str)
+        List of data to process. Can be a list of images, for example.
+    out_path : str
+        Output path
+
+    Returns
+    -------
+    is_completed : bool
+        A boolean indicating if the process has been completed
+    """
+    final_data_list = _discard_processed(data_list, out_path)
+
+    return len(final_data_list) == 0
