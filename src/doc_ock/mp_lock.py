@@ -1,7 +1,6 @@
 import os
 import time
 import logging
-from contextlib import suppress
 from typing import List, Callable
 from contextlib import redirect_stdout
 from multiprocessing import Pool, Lock
@@ -12,11 +11,14 @@ import numpy as np
 from doc_ock.utils import validate_inputs, save_results, load_results
 
 
-def _discard_processed(data_list, out_path):
+def _discard_processed(data_list, out_path, ignore_nothing_processed=True):
     processed = []
-    with suppress(FileNotFoundError):
+    try:
         with open(f'{out_path}/processed_list.txt', 'rt') as fid:
             processed = [x.strip() for x in fid.readlines()]
+    except FileNotFoundError:
+        if not ignore_nothing_processed:
+            raise FileNotFoundError
 
     return list(set(data_list)-set(processed))
 
@@ -255,6 +257,9 @@ def is_mp_lock_completed(data_list: List[str], out_path: str):
     is_completed : bool
         A boolean indicating if the process has been completed
     """
-    final_data_list = _discard_processed(data_list, out_path)
-
+    try:
+        final_data_list = _discard_processed(data_list, out_path, False)
+    except FileNotFoundError:
+        return False
+    
     return len(final_data_list) == 0
